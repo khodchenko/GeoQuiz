@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 
 
 class MainActivity : AppCompatActivity() {
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
 
     var currentIndex = 0
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate(Bundle) called")
@@ -35,7 +38,8 @@ class MainActivity : AppCompatActivity() {
             currentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
         }
 
-
+        var trueButton = findViewById<Button>(R.id.true_button)
+        var falseButton = findViewById<Button>(R.id.false_button)
         var nextButton = findViewById<ImageButton>(R.id.next_button)
 
 
@@ -44,12 +48,14 @@ class MainActivity : AppCompatActivity() {
         questionTextView.setText(question)
 
 
-        var trueButton = findViewById<Button>(R.id.true_button).setOnClickListener{
-            checkAnswer(true)
+        trueButton.setOnClickListener{
+            checkAnswer(true,trueButton,falseButton)
+
         }
 
-        var falseButton = findViewById<Button>(R.id.false_button).setOnClickListener {
-            checkAnswer(false)
+        falseButton.setOnClickListener {
+            checkAnswer(false,trueButton,falseButton)
+
         }
 
 
@@ -57,11 +63,12 @@ class MainActivity : AppCompatActivity() {
             currentIndex += 1 % questionBank.size
             question = questionBank[currentIndex].getTextResId()
             questionTextView.setText(question)
+            trueButton.isVisible = true
+            falseButton.isVisible = true
         }
 
-        //TODO
-
         }
+
 
     override fun onStart(){
         super.onStart()
@@ -95,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onDestroy: called")
     }
 
-    fun checkAnswer(userPressedTrue:Boolean){
+    fun checkAnswer(userPressedTrue:Boolean, button1: Button, button2: Button){
         val answerIsTrue: Boolean = questionBank.get(currentIndex).getAnswerTrue()
         var messageResId = 0
         if (userPressedTrue == answerIsTrue) {
@@ -104,6 +111,8 @@ class MainActivity : AppCompatActivity() {
             messageResId = R.string.incorrect_toast
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+        button1.isVisible = false
+        button2.isVisible = false
     }
 }
 
