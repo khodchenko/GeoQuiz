@@ -1,6 +1,7 @@
 package com.example.geoquiz
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
@@ -24,10 +25,11 @@ class MainActivity : AppCompatActivity() {
     )
     private val TAG = "QuizActivity"
     private val KEY_INDEX = "index"
+    val EXTRA_ANSWER_IS_TRUE = "com.example.geoquiz.answer_is_true"
 
     var currentIndex = 0
 
-
+    var correctSummary = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         var trueButton = findViewById<Button>(R.id.true_button)
         var falseButton = findViewById<Button>(R.id.false_button)
         var nextButton = findViewById<ImageButton>(R.id.next_button)
+        var cheatButton = findViewById<Button>(R.id.cheat_button)
 
 
         var questionTextView = findViewById<TextView>(R.id.question_name)
@@ -48,34 +51,50 @@ class MainActivity : AppCompatActivity() {
         questionTextView.setText(question)
 
 
-        trueButton.setOnClickListener{
-            checkAnswer(true,trueButton,falseButton)
+        trueButton.setOnClickListener {
+            checkAnswer(true, trueButton, falseButton)
 
         }
 
         falseButton.setOnClickListener {
-            checkAnswer(false,trueButton,falseButton)
+            checkAnswer(false, trueButton, falseButton)
 
         }
 
 
         nextButton.setOnClickListener {
-            currentIndex += 1 % questionBank.size
-            question = questionBank[currentIndex].getTextResId()
-            questionTextView.setText(question)
-            trueButton.isVisible = true
-            falseButton.isVisible = true
+            try {
+                currentIndex += 1 % questionBank.size
+                question = questionBank[currentIndex].getTextResId()
+                questionTextView.setText(question)
+                trueButton.isVisible = true
+                falseButton.isVisible = true
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                Toast.makeText(
+                    this,
+                    (correctSummary.toDouble() / questionBank.size * 100).toString() + "%",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+
+            }
         }
 
+        cheatButton.setOnClickListener {
+            var answerIsTrue = questionBank[currentIndex].getAnswerTrue()
+            val intent = Intent (this, CheatActivity::class.java)
+            intent.putExtra(EXTRA_ANSWER_IS_TRUE,answerIsTrue )
+            startActivity(intent)
         }
+    }
 
 
-    override fun onStart(){
+    override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart: called")
     }
 
-    override fun onResume(){
+    override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume: called")
     }
@@ -102,17 +121,20 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onDestroy: called")
     }
 
-    fun checkAnswer(userPressedTrue:Boolean, button1: Button, button2: Button){
+    fun checkAnswer(userPressedTrue: Boolean, button1: Button, button2: Button) {
         val answerIsTrue: Boolean = questionBank.get(currentIndex).getAnswerTrue()
         var messageResId = 0
         if (userPressedTrue == answerIsTrue) {
             messageResId = R.string.correct_toast
+            correctSummary++
         } else {
             messageResId = R.string.incorrect_toast
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
         button1.isVisible = false
         button2.isVisible = false
+
+
     }
 }
 
